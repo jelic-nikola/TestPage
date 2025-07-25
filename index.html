@@ -2,64 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Disables zoom on parent -->
+    <!-- Disable zoom on parent page -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
     <title>Test Page</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
       body {
-        margin: 0;
-        padding: 0;
-        font-family: "Inter", sans-serif;
-        background-color: #f9f9f9;
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        background: #f9f9f9;
         color: #333;
       }
-
-      .container {
-        padding: 2rem;
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
       h1 {
         color: #2b6cb0;
-        font-size: 2rem;
       }
-
-      button {
-        padding: 0.5rem 1rem;
-        background-color: #2b6cb0;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-        margin-top: 1rem;
-      }
-
-      button:hover {
-        background-color: #2c5282;
-      }
-
-      .output {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: #edf2f7;
-        border: 1px solid #cbd5e0;
-        border-radius: 4px;
-      }
-
       .iframe-wrapper {
         margin-top: 2rem;
         width: 100%;
@@ -67,45 +25,21 @@
         border: 1px solid #ccc;
         overflow: hidden;
       }
-
       iframe {
         width: 100%;
         height: 100%;
         border: none;
-        touch-action: auto;
-      }
-
-      a {
-        display: inline-block;
-        margin-top: 1rem;
-        color: #2b6cb0;
-        text-decoration: underline;
+        touch-action: none; /* disable parent gestures to allow iframe gestures */
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Welcome to the <em>Test Page</em></h1>
-      <p>This is a simple page for testing and development experiments.</p>
-
-      <a href="./form/index.html">Go to input form?</a>
-
-      <button onclick="runTest()">Click me</button>
-
-      <div class="output" id="output">Waiting for a click...</div>
-
-      <div class="iframe-wrapper">
-        <iframe src="./zoomable/index.html" allow="*"></iframe>
-      </div>
+    <h1>Parent Page</h1>
+    <p>Pinch zoom or Ctrl+scroll zoom on the iframe below only.</p>
+    <div class="iframe-wrapper">
+      <iframe
+        src="https://jelic-nikola.github.io/TestPage/zoomable/index.html"
+      ></iframe>
     </div>
-
-    <script>
-      function runTest() {
-        const now = new Date().toLocaleTimeString();
-        document.getElementById(
-          "output"
-        ).textContent = `Button clicked at ${now}`;
-      }
-    </script>
   </body>
 </html>

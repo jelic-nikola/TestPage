@@ -2,33 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=yes"
-    />
-    <title>Zoomable Iframe</title>
+    <!-- Normal viewport so iframe content can size properly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zoomable Iframe Content</title>
     <style>
+      html,
       body {
-        font-family: sans-serif;
-        margin: 2rem;
-        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: auto;
+        touch-action: none; /* prevent default pinch zoom */
+        font-family: Arial, sans-serif;
+        background: white;
       }
-
-      h2 {
-        color: #3182ce;
-      }
-
-      p {
-        line-height: 1.6;
-        max-width: 600px;
+      #zoom-wrapper {
+        transform-origin: 0 0;
+        will-change: transform;
+        padding: 2rem;
       }
     </style>
   </head>
   <body>
-    <h2>Zoomable Content</h2>
-    <p>
-      You can zoom this content using pinch gestures (on touch devices) or Ctrl
-      + scroll (on desktop). This will not affect the outer page.
-    </p>
+    <div id="zoom-wrapper">
+      <h2>Zoomable Content</h2>
+      <p>
+        Use Ctrl + mouse wheel or pinch gestures (on touch devices) to zoom only
+        this content.
+      </p>
+      <p>Add more content here to test scrolling and zooming.</p>
+    </div>
+
+    <script>
+      const wrapper = document.getElementById("zoom-wrapper");
+      let scale = 1;
+      const minScale = 0.5;
+      const maxScale = 3;
+
+      // Helper to apply scale
+      function setScale(newScale) {
+        scale = Math.min(maxScale, Math.max(minScale, newScale));
+        wrapper.style.transform = `scale(${scale})`;
+      }
+
+      // Mouse wheel + Ctrl zoom
+      window.addEventListener(
+        "wheel",
+        (e) => {
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            setScale(scale + delta);
+          }
+        },
+        { passive: false }
+      );
+
+      // Touch pinch zoom
+      let initialDistance = null;
+      let initialScale = scale;
+
+      function getDistance(touches) {
+        const [a, b] = touches;
+        return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      }
+
+      window.addEventListener(
+        "touchstart",
+        (e) => {
+          if (e.touches.length === 2) {
+            initialDistance = getDistance(e.touches);
+            initialScale = scale;
+          }
+        },
+        { passive: false }
+      );
+
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (e.touches.length === 2 && initialDistance !== null) {
+            e.preventDefault();
+            const currentDistance = getDistance(e.touches);
+            const newScale = initialScale * (currentDistance / initialDistance);
+            setScale(newScale);
+          }
+        },
+        { passive: false }
+      );
+
+      window.addEventListener("touchend", (e) => {
+        if (e.touches.length < 2) {
+          initialDistance = null;
+        }
+      });
+    </script>
   </body>
 </html>
