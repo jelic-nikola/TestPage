@@ -2,22 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Disables zoom on parent -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Test Page</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
       body {
+        margin: 0;
+        padding: 0;
         font-family: "Inter", sans-serif;
-        margin: 2rem;
         background-color: #f9f9f9;
         color: #333;
       }
 
+      .container {
+        padding: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
       h1 {
         color: #2b6cb0;
+        font-size: 2rem;
       }
 
       button {
@@ -27,6 +44,8 @@
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-weight: 600;
+        margin-top: 1rem;
       }
 
       button:hover {
@@ -40,15 +59,45 @@
         border: 1px solid #cbd5e0;
         border-radius: 4px;
       }
+
+      .iframe-wrapper {
+        margin-top: 2rem;
+        width: 100%;
+        height: 80vh;
+        border: 1px solid #ccc;
+        overflow: hidden;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        touch-action: auto;
+      }
+
+      a {
+        display: inline-block;
+        margin-top: 1rem;
+        color: #2b6cb0;
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
-    <h1>Welcome to the <em>Test Page</em></h1>
-    <p>This is a simple page for testing and development experiments</p>
+    <div class="container">
+      <h1>Welcome to the <em>Test Page</em></h1>
+      <p>This is a simple page for testing and development experiments.</p>
 
-    <button onclick="runTest()">Click me</button>
+      <a href="./form/index.html">Go to input form?</a>
 
-    <div class="output" id="output">Waiting for a click...</div>
+      <button onclick="runTest()">Click me</button>
+
+      <div class="output" id="output">Waiting for a click...</div>
+
+      <div class="iframe-wrapper">
+        <iframe src="./zoomable/index.html" allow="*"></iframe>
+      </div>
+    </div>
 
     <script>
       function runTest() {
