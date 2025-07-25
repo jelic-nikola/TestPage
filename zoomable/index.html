@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Normal viewport so iframe content can size properly -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Zoomable Iframe Content</title>
     <style>
@@ -12,7 +11,7 @@
         padding: 0;
         height: 100%;
         overflow: auto;
-        touch-action: none; /* prevent default pinch zoom */
+        touch-action: none; /* disable native pinch-zoom */
         font-family: Arial, sans-serif;
         background: white;
       }
@@ -20,6 +19,16 @@
         transform-origin: 0 0;
         will-change: transform;
         padding: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      h2 {
+        margin-top: 0;
+        color: #3182ce;
+      }
+      p {
+        line-height: 1.6;
+        margin-bottom: 1rem;
       }
     </style>
   </head>
@@ -30,7 +39,74 @@
         Use Ctrl + mouse wheel or pinch gestures (on touch devices) to zoom only
         this content.
       </p>
-      <p>Add more content here to test scrolling and zooming.</p>
+      <p>
+        Try scrolling and zooming around different areas — zoom centers where
+        you pinch or scroll.
+      </p>
+
+      <!-- Lots of content for scrolling -->
+      <div>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel
+          urna quis lorem interdum vehicula. Phasellus commodo, lectus ut
+          bibendum varius, ligula leo pretium arcu, in ultricies sem erat at
+          justo.
+        </p>
+        <p>
+          Nullam efficitur sapien sed orci vestibulum, eu cursus elit aliquet.
+          Morbi lobortis lacus vel risus dignissim, at tempor nunc commodo.
+        </p>
+        <p>
+          Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+          posuere cubilia curae; Aenean rutrum est nec felis tincidunt, at
+          gravida risus aliquet.
+        </p>
+        <p>
+          Suspendisse potenti. Aliquam erat volutpat. Curabitur fringilla magna
+          ut massa blandit, nec consectetur lorem faucibus.
+        </p>
+        <p>
+          Integer faucibus nisl a risus tristique, sed dictum metus ornare.
+          Mauris commodo sapien vitae diam feugiat, eu facilisis ligula ornare.
+        </p>
+        <p>
+          Phasellus auctor elit ut sapien egestas, id convallis arcu efficitur.
+          Nullam iaculis metus vitae libero vehicula fringilla.
+        </p>
+        <p>
+          Duis tincidunt lorem in faucibus dictum. Sed consectetur risus vel
+          magna malesuada faucibus.
+        </p>
+        <p>
+          Donec id ex nec orci dignissim dapibus. Sed a felis consectetur,
+          fringilla purus vel, porta erat.
+        </p>
+        <p>
+          Nam in orci at orci fermentum lacinia. Integer maximus lacus a orci
+          accumsan, at varius elit blandit.
+        </p>
+        <p>
+          Morbi pulvinar leo vitae eros vulputate, sed congue leo egestas.
+          Pellentesque habitant morbi tristique senectus et netus et malesuada
+          fames ac turpis egestas.
+        </p>
+        <p>
+          Praesent ultricies, justo sed volutpat cursus, lorem ex tincidunt
+          eros, nec gravida tellus libero id enim.
+        </p>
+        <p>
+          Etiam porttitor sapien a arcu posuere, in tristique justo dignissim.
+        </p>
+        <p>
+          Curabitur luctus, nibh in eleifend iaculis, libero urna luctus massa,
+          sed volutpat velit nisl non tellus.
+        </p>
+        <p>
+          Vivamus sed sem eu libero pulvinar cursus. Morbi vel turpis ac risus
+          sagittis fringilla.
+        </p>
+        <p>Donec sit amet risus vitae lorem dignissim congue.</p>
+      </div>
     </div>
 
     <script>
@@ -39,10 +115,39 @@
       const minScale = 0.5;
       const maxScale = 3;
 
-      // Helper to apply scale
-      function setScale(newScale) {
-        scale = Math.min(maxScale, Math.max(minScale, newScale));
-        wrapper.style.transform = `scale(${scale})`;
+      // Current translation (to keep zoom centered)
+      let translateX = 0;
+      let translateY = 0;
+
+      // Helper to apply transform with translate + scale
+      function applyTransform() {
+        wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      }
+
+      // Adjust translate to keep zoom centered at (cx, cy) in wrapper's coordinate system
+      function zoomAt(cx, cy, newScale) {
+        // Calculate how much to shift translate so point under cursor stays fixed
+        const dx = cx - translateX;
+        const dy = cy - translateY;
+
+        const scaleFactor = newScale / scale;
+
+        // Update translate to keep zoom origin stable
+        translateX -= dx * (scaleFactor - 1);
+        translateY -= dy * (scaleFactor - 1);
+
+        scale = newScale;
+        applyTransform();
+      }
+
+      // Get position relative to wrapper (accounting for current translate and scale)
+      function getRelativePosition(clientX, clientY) {
+        const rect = wrapper.getBoundingClientRect();
+        // Convert client coords to wrapper local coords (before transform)
+        return {
+          x: (clientX - rect.left - translateX) / scale,
+          y: (clientY - rect.top - translateY) / scale,
+        };
       }
 
       // Mouse wheel + Ctrl zoom
@@ -51,8 +156,15 @@
         (e) => {
           if (e.ctrlKey) {
             e.preventDefault();
+
             const delta = e.deltaY < 0 ? 0.1 : -0.1;
-            setScale(scale + delta);
+            let newScale = Math.min(
+              maxScale,
+              Math.max(minScale, scale + delta)
+            );
+
+            const pos = getRelativePosition(e.clientX, e.clientY);
+            zoomAt(pos.x, pos.y, newScale);
           }
         },
         { passive: false }
@@ -61,18 +173,30 @@
       // Touch pinch zoom
       let initialDistance = null;
       let initialScale = scale;
+      let pinchCenter = null;
 
       function getDistance(touches) {
         const [a, b] = touches;
         return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
       }
 
+      function getCenter(touches) {
+        const [a, b] = touches;
+        return {
+          x: (a.clientX + b.clientX) / 2,
+          y: (a.clientY + b.clientY) / 2,
+        };
+      }
+
       window.addEventListener(
         "touchstart",
         (e) => {
           if (e.touches.length === 2) {
+            e.preventDefault();
             initialDistance = getDistance(e.touches);
             initialScale = scale;
+            pinchCenter = getCenter(e.touches);
+            pinchCenter = getRelativePosition(pinchCenter.x, pinchCenter.y);
           }
         },
         { passive: false }
@@ -84,8 +208,10 @@
           if (e.touches.length === 2 && initialDistance !== null) {
             e.preventDefault();
             const currentDistance = getDistance(e.touches);
-            const newScale = initialScale * (currentDistance / initialDistance);
-            setScale(newScale);
+            let newScale = initialScale * (currentDistance / initialDistance);
+            newScale = Math.min(maxScale, Math.max(minScale, newScale));
+
+            zoomAt(pinchCenter.x, pinchCenter.y, newScale);
           }
         },
         { passive: false }
@@ -94,6 +220,7 @@
       window.addEventListener("touchend", (e) => {
         if (e.touches.length < 2) {
           initialDistance = null;
+          pinchCenter = null;
         }
       });
     </script>
